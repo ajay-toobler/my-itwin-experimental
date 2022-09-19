@@ -1,0 +1,14 @@
+{
+  "smart-device": {
+    "tv001": {
+      "Is On": true,
+      "Current Channel": 17,
+      "Color Status": "red"
+    },
+    "washer001": {
+      "Time Remaining": 15,
+      "Cycles": 10,
+      "Color Status": "green"
+    }
+  }
+}
