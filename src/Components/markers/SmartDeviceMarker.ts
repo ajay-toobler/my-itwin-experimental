@@ -1,5 +1,10 @@
 import { XAndY, XYAndZ } from "@itwin/core-geometry";
-import { EmphasizeElements, IModelApp, Marker } from "@itwin/core-frontend";
+import {
+  BeButtonEvent,
+  EmphasizeElements,
+  IModelApp,
+  Marker,
+} from "@itwin/core-frontend";
 import { ColorDef, FeatureOverrideType } from "@itwin/core-common";
 import { ElementColorStatus } from "../../Customizer/ElementColorStatus";
 
@@ -7,6 +12,7 @@ export class SmartDeviceMarker extends Marker {
   private _smartDeviceId: string;
   private _smartDeviceType: string;
   private _EcInstanceId: string;
+  private _mouseMoveLatestEvent?: BeButtonEvent;
 
   constructor(
     location: XYAndZ,
@@ -14,42 +20,46 @@ export class SmartDeviceMarker extends Marker {
     smartDeviceId: string,
     smartDeviceType: string,
     cloudData: any,
-    EcInstanceId: any,
+    EcInstanceId: any
   ) {
     super(location, size);
 
     this._smartDeviceId = smartDeviceId;
     this._smartDeviceType = smartDeviceType;
     this._EcInstanceId = EcInstanceId;
+    this._mouseMoveLatestEvent = undefined;
 
     this.setImageUrl(`/${this._smartDeviceType}.png`);
-    // this.title = this.populateTitle(cloudData);
-    // this.updateColor(cloudData);
   }
 
-   updateTitle(cloudData:any){
+  onMouseMove(ev: BeButtonEvent): void {
+    this._mouseMoveLatestEvent = ev;
+    super.onMouseMove(ev);
+  }
+
+  onMouseLeave(): void {
+    this._mouseMoveLatestEvent = undefined;
+    super.onMouseLeave();
+  }
+
+  updateTitle(cloudData: any) {
     this.title = this.populateTitle(cloudData);
+    if (this._mouseMoveLatestEvent && this._isHilited) {
+      super.onMouseMove(this._mouseMoveLatestEvent);
+    }
   }
 
-   updateColor(cloudData: any){
-    ElementColorStatus.updateDeviceColorStatus(
-      cloudData,
-      {
-        id: this._EcInstanceId,
-        smartDeviceId : this._smartDeviceId
-      }
-    );
+  updateColor(cloudData: any) {
+    ElementColorStatus.updateDeviceColorStatus(cloudData, {
+      id: this._EcInstanceId,
+      smartDeviceId: this._smartDeviceId,
+    });
+    if (this._mouseMoveLatestEvent && this._isHilited) {
+      super.onMouseMove(this._mouseMoveLatestEvent);
+    }
   }
 
   private populateTitle(cloudData: any) {
-    /*
-     "speaker001": { 
-      "Notifications": 2, 
-      "song Playing": true,
-      "Song Name": "All I Want for Christmas Is You",
-      "Song Artist": "Mariah Carey"
-    },
-  */
     let smartTable = "";
     for (const [key, value] of Object.entries(cloudData)) {
       smartTable += `
@@ -68,8 +78,6 @@ export class SmartDeviceMarker extends Marker {
       ${smartTable}
      </table>
     `;
-
-
 
     return smartTableDiv;
   }
